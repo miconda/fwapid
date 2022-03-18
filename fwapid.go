@@ -88,8 +88,11 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid URL", http.StatusNotFound)
 		return
 	}
+	if !strings.HasPrefix(sURL, "/") {
+		sURL = "/" + sURL
+	}
 	tURL := strings.Split(sURL, "/")
-	if len(tURL) < 2 {
+	if len(tURL) < 3 {
 		log.Printf("Too few tokens in URL: %s\n", sURL)
 		http.Error(w, "Too few tokens", http.StatusBadRequest)
 		return
@@ -108,14 +111,14 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !isAllowed(tURL[0], tURL[1]) {
+	if !isAllowed(tURL[1], tURL[2]) {
 		log.Printf("action not allowed from URL: %s\n", sURL)
 		http.Error(w, "Not allowed", http.StatusForbidden)
 		return
 	}
 
 	ipAddr := "127.0.0.1"
-	switch tURL[0] {
+	switch tURL[1] {
 	case "allow", "block", "show":
 		ipAddr, _, err = net.SplitHostPort(r.RemoteAddr)
 		if err != nil {
@@ -124,11 +127,12 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case "allowip", "blockip":
-		if len(tURL) < 3 || len(tURL[2]) < 4 {
+		if len(tURL) < 4 || len(strings.TrimSpace(tURL[3])) < 4 {
 			log.Printf("too few tokens in URL: %s\n", sURL)
 			http.Error(w, "Too few tokens", http.StatusBadRequest)
 			return
 		}
+		ipAddr = strings.TrimSpace(tURL[3])
 	default:
 		log.Printf("action not allowed from URL: %s\n", sURL)
 		http.Error(w, "Not allowed", http.StatusForbidden)
@@ -143,7 +147,7 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// iptables -I|-D INPUT -s abc.def.ghi.jkl -p tcp -m multiport --dports 80,443 -j ACCEPT
-	switch tURL[0] {
+	switch tURL[1] {
 	case "allow", "allowip":
 		log.Printf("allowed %s via URL: %s\n", ipAddr, sURL)
 		runCmd(exec.Command("iptables", "-I", "-s", ipAddr, "-p", "tcp", "-m", "multiport",

@@ -184,7 +184,7 @@ func startHTTPServices() chan error {
 		go func() {
 			log.Printf("Staring HTTPS service on: http://%s/ ...", cliops.httpssrv)
 			if len(cliops.domain) > 0 {
-				dtoken := strings.Split(strings.TrimSpace(cliops.domain), ":")
+				dtoken := strings.Split(strings.TrimSpace(cliops.httpssrv), ":")
 				log.Printf("HTTPS with domain: https://%s:%s/ ...", cliops.domain, dtoken[1])
 			}
 

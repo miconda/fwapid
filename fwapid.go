@@ -32,7 +32,7 @@ type CLIOptions struct {
 
 var cliops = CLIOptions{
 	domain:      "",
-	httpsrv:     "127.0.0.1:8840",
+	httpsrv:     "",
 	httpssrv:    "",
 	httpsusele:  false,
 	httpspubkey: "",
@@ -222,6 +222,10 @@ func main() {
 	// get flags
 	flag.Parse()
 
+	if len(cliops.httpsrv) == 0 || len(cliops.httpssrv) == 0 {
+		log.Printf("no http or https server address - exiting\n")
+		os.Exit(1)
+	}
 	if cliops.httpsusele && len(cliops.domain) == 0 {
 		log.Printf("use-letsencrypt requires domain parameter\n")
 		os.Exit(1)

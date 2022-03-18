@@ -116,14 +116,14 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 
 	ipAddr := "127.0.0.1"
 	switch tURL[0] {
-	case "allow":
+	case "allow", "block", "show":
 		ipAddr, _, err = net.SplitHostPort(r.RemoteAddr)
 		if err != nil {
 			log.Printf("action not allowed from URL: %s\n", sURL)
 			http.Error(w, "Not allowed", http.StatusForbidden)
 			return
 		}
-	case "allowip":
+	case "allowip", "blockip":
 		if len(tURL) < 3 || len(tURL[2]) < 4 {
 			log.Printf("too few tokens in URL: %s\n", sURL)
 			http.Error(w, "Too few tokens", http.StatusBadRequest)
@@ -142,12 +142,22 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("allowed %s via URL: %s\n", ipAddr, sURL)
-	// iptables -I INPUT -s abc.def.ghi.jkl -p tcp -m multiport --dports 80,443 -j ACCEPT
-	runCmd(exec.Command("iptables", "-I", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
-		"--dports", "80,443", "-j", "ACCEPT"))
-
-	fmt.Fprintf(w, "{ \"allowed\": \"%s\" }", ipAddr)
+	// iptables -I|-D INPUT -s abc.def.ghi.jkl -p tcp -m multiport --dports 80,443 -j ACCEPT
+	switch tURL[0] {
+	case "allow", "allowip":
+		log.Printf("allowed %s via URL: %s\n", ipAddr, sURL)
+		runCmd(exec.Command("iptables", "-I", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
+			"--dports", "80,443", "-j", "ACCEPT"))
+		fmt.Fprintf(w, "{ \"action\": \"allow\", \"address\": \"%s\" }", ipAddr)
+	case "block", "blockip":
+		log.Printf("blocked %s via URL: %s\n", ipAddr, sURL)
+		runCmd(exec.Command("iptables", "-D", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
+			"--dports", "80,443", "-j", "ACCEPT"))
+		fmt.Fprintf(w, "{ \"action\": \"block\", \"address\": \"%s\" }", ipAddr)
+	case "show":
+		log.Printf("showed %s via URL: %s\n", ipAddr, sURL)
+		fmt.Fprintf(w, "{ \"action\": \"show\", \"address\": \"%s\" }", ipAddr)
+	}
 }
 
 func startHTTPServices() chan error {

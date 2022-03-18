@@ -222,7 +222,7 @@ func main() {
 	// get flags
 	flag.Parse()
 
-	if len(cliops.httpsrv) == 0 || len(cliops.httpssrv) == 0 {
+	if len(cliops.httpsrv) == 0 && len(cliops.httpssrv) == 0 {
 		log.Printf("no http or https server address - exiting\n")
 		os.Exit(1)
 	}

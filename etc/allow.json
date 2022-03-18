@@ -1,0 +1,10 @@
+{
+	"mode": 1,
+	"rules": [
+		{
+			"name": "test",
+			"key": "3FA6B8B3-1470-44B3-959B-202A8642D972",
+			"allow": ["allow"]
+		}
+	]
+}

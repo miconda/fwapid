@@ -48,18 +48,18 @@ type AllowRules struct {
 }
 
 type RuleData struct {
-	Name  string   `json:"name"`
-	Key   string   `json:"key"`
-	Allow []string `json:"allow"`
+	Name    string   `json:"name"`
+	Key     string   `json:"key"`
+	Actions []string `json:"actions"`
 }
 
 var vAllowRules AllowRules = AllowRules{}
 
-func isAllowed(vAllow string, vKey string) bool {
+func isAllowed(vAction string, vKey string) bool {
 	for i := 0; i < len(vAllowRules.Rules); i++ {
 		if vAllowRules.Rules[i].Key == vKey {
-			for j := 0; j < len(vAllowRules.Rules[i].Allow); j++ {
-				if vAllowRules.Rules[i].Allow[j] == vAllow {
+			for j := 0; j < len(vAllowRules.Rules[i].Actions); j++ {
+				if vAllowRules.Rules[i].Actions[j] == vAction {
 					return true
 				}
 			}
@@ -85,13 +85,13 @@ func runCmd(cmd *exec.Cmd) *bytes.Buffer {
 func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 	sURL := strings.TrimSpace(r.URL.Path)
 	if len(sURL) == 0 || sURL == "/" {
-		http.Error(w, "cannot read body", http.StatusNotFound)
+		http.Error(w, "Invalid URL", http.StatusNotFound)
 		return
 	}
 	tURL := strings.Split(sURL, "/")
 	if len(tURL) < 2 {
-		log.Printf("too few tokens in URL: %s\n", sURL)
-		http.Error(w, "too few tokens", http.StatusBadRequest)
+		log.Printf("Too few tokens in URL: %s\n", sURL)
+		http.Error(w, "Too few tokens", http.StatusBadRequest)
 		return
 	}
 
@@ -114,18 +114,34 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ipAddr, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
+	ipAddr := "127.0.0.1"
+	switch tURL[0] {
+	case "allow":
+		ipAddr, _, err = net.SplitHostPort(r.RemoteAddr)
+		if err != nil {
+			log.Printf("action not allowed from URL: %s\n", sURL)
+			http.Error(w, "Not allowed", http.StatusForbidden)
+			return
+		}
+	case "allowip":
+		if len(tURL) < 3 || len(tURL[2]) < 4 {
+			log.Printf("too few tokens in URL: %s\n", sURL)
+			http.Error(w, "Too few tokens", http.StatusBadRequest)
+			return
+		}
+	default:
 		log.Printf("action not allowed from URL: %s\n", sURL)
 		http.Error(w, "Not allowed", http.StatusForbidden)
 		return
 	}
+
 	netIP := net.ParseIP(ipAddr)
 	if netIP == nil {
 		log.Printf("action not allowed from URL: %s\n", sURL)
 		http.Error(w, "Not allowed", http.StatusForbidden)
 		return
 	}
+
 	log.Printf("allowed %s via URL: %s\n", ipAddr, sURL)
 	// iptables -I INPUT -s abc.def.ghi.jkl -p tcp -m multiport --dports 80,443 -j ACCEPT
 	runCmd(exec.Command("iptables", "-I", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
@@ -189,8 +205,6 @@ func init() {
 }
 
 func main() {
-	var err error
-
 	// get flags
 	flag.Parse()
 

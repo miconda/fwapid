@@ -119,14 +119,14 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 
 	ipAddr := "127.0.0.1"
 	switch tURL[1] {
-	case "allow", "block", "show":
+	case "allow", "revoke", "show":
 		ipAddr, _, err = net.SplitHostPort(r.RemoteAddr)
 		if err != nil {
 			log.Printf("action not allowed from URL: %s\n", sURL)
 			http.Error(w, "Not allowed", http.StatusForbidden)
 			return
 		}
-	case "allowip", "blockip":
+	case "allowip", "revokeip":
 		if len(tURL) < 4 || len(strings.TrimSpace(tURL[3])) < 4 {
 			log.Printf("too few tokens in URL: %s\n", sURL)
 			http.Error(w, "Too few tokens", http.StatusBadRequest)
@@ -153,11 +153,11 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 		runCmd(exec.Command("iptables", "-I", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
 			"--dports", "80,443", "-j", "ACCEPT"))
 		fmt.Fprintf(w, "{ \"action\": \"allow\", \"address\": \"%s\" }", ipAddr)
-	case "block", "blockip":
-		log.Printf("blocked %s via URL: %s\n", ipAddr, sURL)
+	case "revoke", "revokeip":
+		log.Printf("revoked %s via URL: %s\n", ipAddr, sURL)
 		runCmd(exec.Command("iptables", "-D", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
 			"--dports", "80,443", "-j", "ACCEPT"))
-		fmt.Fprintf(w, "{ \"action\": \"block\", \"address\": \"%s\" }", ipAddr)
+		fmt.Fprintf(w, "{ \"action\": \"revoke\", \"address\": \"%s\" }", ipAddr)
 	case "show":
 		log.Printf("showed %s via URL: %s\n", ipAddr, sURL)
 		fmt.Fprintf(w, "{ \"action\": \"show\", \"address\": \"%s\" }", ipAddr)

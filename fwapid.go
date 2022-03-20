@@ -43,8 +43,9 @@ var cliops = CLIOptions{
 }
 
 type AllowRules struct {
-	Mode  int        `json:"mode"`
-	Rules []RuleData `json:"rules"`
+	Mode    int        `json:"mode"`
+	Command string     `json:"command"`
+	Rules   []RuleData `json:"rules"`
 }
 
 type RuleData struct {
@@ -110,6 +111,9 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Server Error", http.StatusInternalServerError)
 		return
 	}
+	if len(vAllowRules.Command) == 0 {
+		vAllowRules.Command = "iptables"
+	}
 
 	if !isAllowed(tURL[1], tURL[2]) {
 		log.Printf("action not allowed from URL: %s\n", sURL)
@@ -150,12 +154,12 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 	switch tURL[1] {
 	case "allow", "allowip":
 		log.Printf("allowed %s via URL: %s\n", ipAddr, sURL)
-		runCmd(exec.Command("iptables", "-I", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
+		runCmd(exec.Command(vAllowRules.Command, "-I", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
 			"--dports", "80,443", "-j", "ACCEPT"))
 		fmt.Fprintf(w, "{ \"action\": \"allow\", \"address\": \"%s\" }", ipAddr)
 	case "revoke", "revokeip":
 		log.Printf("revoked %s via URL: %s\n", ipAddr, sURL)
-		runCmd(exec.Command("iptables", "-D", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
+		runCmd(exec.Command(vAllowRules.Command, "-D", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
 			"--dports", "80,443", "-j", "ACCEPT"))
 		fmt.Fprintf(w, "{ \"action\": \"revoke\", \"address\": \"%s\" }", ipAddr)
 	case "show":

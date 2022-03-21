@@ -51,6 +51,7 @@ type AllowRules struct {
 type RuleData struct {
 	Name    string   `json:"name"`
 	Key     string   `json:"key"`
+	DPorts  string   `json:"dports"`
 	Actions []string `json:"actions"`
 }
 
@@ -68,6 +69,20 @@ func isAllowed(vAction string, vKey string) bool {
 		}
 	}
 	return false
+}
+
+func getAllowedIndex(vAction string, vKey string) int {
+	for i := 0; i < len(vAllowRules.Rules); i++ {
+		if vAllowRules.Rules[i].Key == vKey {
+			for j := 0; j < len(vAllowRules.Rules[i].Actions); j++ {
+				if vAllowRules.Rules[i].Actions[j] == vAction {
+					return i
+				}
+			}
+			return -1
+		}
+	}
+	return -1
 }
 
 // Run git command, will currently die on all errors
@@ -122,7 +137,8 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 		vAllowRules.Command = "iptables"
 	}
 
-	if !isAllowed(tURL[1], tURL[2]) {
+	idxAllow := getAllowedIndex(tURL[1], tURL[2])
+	if idxAllow < 0 {
 		log.Printf("action not allowed from %s URL: %s\n", srcIPAddr, sURL)
 		http.Error(w, "Not allowed", http.StatusForbidden)
 		return
@@ -151,17 +167,20 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(vAllowRules.Rules[idxAllow].DPorts) == 0 {
+		vAllowRules.Rules[idxAllow].DPorts = "80,443"
+	}
 	// iptables -I|-D INPUT -s abc.def.ghi.jkl -p tcp -m multiport --dports 80,443 -j ACCEPT
 	switch tURL[1] {
 	case "allow", "allowip":
 		log.Printf("allowed %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
 		runCmd(exec.Command(vAllowRules.Command, "-I", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
-			"--dports", "80,443", "-j", "ACCEPT"))
+			"--dports", vAllowRules.Rules[idxAllow].DPorts, "-j", "ACCEPT"))
 		fmt.Fprintf(w, "{ \"action\": \"allow\", \"address\": \"%s\" }", ipAddr)
 	case "revoke", "revokeip":
 		log.Printf("revoked %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
 		runCmd(exec.Command(vAllowRules.Command, "-D", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
-			"--dports", "80,443", "-j", "ACCEPT"))
+			"--dports", vAllowRules.Rules[idxAllow].DPorts, "-j", "ACCEPT"))
 		fmt.Fprintf(w, "{ \"action\": \"revoke\", \"address\": \"%s\" }", ipAddr)
 	case "show":
 		log.Printf("showed %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)

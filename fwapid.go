@@ -85,7 +85,14 @@ func runCmd(cmd *exec.Cmd) *bytes.Buffer {
 
 func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 	sURL := strings.TrimSpace(r.URL.Path)
+	srcIPAddr, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		log.Printf("action not allowed from %s URL: %s\n", srcIPAddr, sURL)
+		http.Error(w, "Not allowed", http.StatusForbidden)
+		return
+	}
 	if len(sURL) == 0 || sURL == "/" {
+		log.Printf("invalid request from %s URL: %s\n", srcIPAddr, sURL)
 		http.Error(w, "Invalid URL", http.StatusNotFound)
 		return
 	}
@@ -94,20 +101,20 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	tURL := strings.Split(sURL, "/")
 	if len(tURL) < 3 {
-		log.Printf("Too few tokens in URL: %s\n", sURL)
+		log.Printf("Too few tokens from %s in URL: %s\n", srcIPAddr, sURL)
 		http.Error(w, "Too few tokens", http.StatusBadRequest)
 		return
 	}
 
 	allowBytes, err := os.ReadFile(cliops.allowfile)
 	if err != nil {
-		log.Printf("unavailable allow file: %s\n", sURL)
+		log.Printf("unavailable allow file - from %s URL: %s\n", srcIPAddr, sURL)
 		http.Error(w, "Server Error", http.StatusInternalServerError)
 		return
 	}
 	err = json.Unmarshal(allowBytes, &vAllowRules)
 	if err != nil {
-		log.Printf("invalid content in allow file: %s\n", sURL)
+		log.Printf("invalid content in allow file -  from %s URL: %s\n", srcIPAddr, sURL)
 		http.Error(w, "Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -116,36 +123,30 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !isAllowed(tURL[1], tURL[2]) {
-		log.Printf("action not allowed from URL: %s\n", sURL)
+		log.Printf("action not allowed from %s URL: %s\n", srcIPAddr, sURL)
 		http.Error(w, "Not allowed", http.StatusForbidden)
 		return
 	}
 
-	ipAddr := "127.0.0.1"
+	ipAddr := srcIPAddr
 	switch tURL[1] {
 	case "allow", "revoke", "show":
-		ipAddr, _, err = net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			log.Printf("action not allowed from URL: %s\n", sURL)
-			http.Error(w, "Not allowed", http.StatusForbidden)
-			return
-		}
 	case "allowip", "revokeip":
 		if len(tURL) < 4 || len(strings.TrimSpace(tURL[3])) < 4 {
-			log.Printf("too few tokens in URL: %s\n", sURL)
+			log.Printf("too few tokens from %s URL: %s\n", srcIPAddr, sURL)
 			http.Error(w, "Too few tokens", http.StatusBadRequest)
 			return
 		}
 		ipAddr = strings.TrimSpace(tURL[3])
 	default:
-		log.Printf("action not allowed from URL: %s\n", sURL)
+		log.Printf("action not allowed from %s URL: %s\n", srcIPAddr, sURL)
 		http.Error(w, "Not allowed", http.StatusForbidden)
 		return
 	}
 
 	netIP := net.ParseIP(ipAddr)
 	if netIP == nil {
-		log.Printf("action not allowed from URL: %s\n", sURL)
+		log.Printf("action not allowed from %s URL: %s\n", srcIPAddr, sURL)
 		http.Error(w, "Not allowed", http.StatusForbidden)
 		return
 	}
@@ -153,17 +154,17 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 	// iptables -I|-D INPUT -s abc.def.ghi.jkl -p tcp -m multiport --dports 80,443 -j ACCEPT
 	switch tURL[1] {
 	case "allow", "allowip":
-		log.Printf("allowed %s via URL: %s\n", ipAddr, sURL)
+		log.Printf("allowed %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
 		runCmd(exec.Command(vAllowRules.Command, "-I", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
 			"--dports", "80,443", "-j", "ACCEPT"))
 		fmt.Fprintf(w, "{ \"action\": \"allow\", \"address\": \"%s\" }", ipAddr)
 	case "revoke", "revokeip":
-		log.Printf("revoked %s via URL: %s\n", ipAddr, sURL)
+		log.Printf("revoked %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
 		runCmd(exec.Command(vAllowRules.Command, "-D", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
 			"--dports", "80,443", "-j", "ACCEPT"))
 		fmt.Fprintf(w, "{ \"action\": \"revoke\", \"address\": \"%s\" }", ipAddr)
 	case "show":
-		log.Printf("showed %s via URL: %s\n", ipAddr, sURL)
+		log.Printf("showed %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
 		fmt.Fprintf(w, "{ \"action\": \"show\", \"address\": \"%s\" }", ipAddr)
 	}
 }

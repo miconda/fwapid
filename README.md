@@ -173,6 +173,10 @@ curl https://server.com:20443/show/3FA6B8B3-1470-44B3-959B-202A8642D972
 
 ### Systemd Service ###
 
+To run `fwapid` as a `systemd` service, a unit file `/etc/systemd/system/fwapid.service`
+can be created with a content like:
+
+```
 [Unit]
 Description=fwapid
 
@@ -184,6 +188,7 @@ ExecStart=/usr/local/bin/fwapid --allow-file /etc/fwapid/fwapi-allow.json --log-
 
 [Install]
 WantedBy=multi-user.target
+```
 
 ### Log File ###
 

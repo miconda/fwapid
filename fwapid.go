@@ -295,11 +295,11 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 	switch tURL[1] {
 	case "allow", "allowip":
 		log.Printf("allowing %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
-		log.Printf("allow command: %s %s %s %s %s %s %s %s %s %s %s %s\n",
-			vAllowRules.Command, vAllowRules.OpAdd, "-s", ipAddr, "-p", "tcp", "-m", "multiport",
+		log.Printf("allow command: %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+			vAllowRules.Command, vAllowRules.OpAdd, "INPUT", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
 			"--dports", vAllowRules.Rules[idxAllow].DPorts, "-j", vAllowRules.Policy)
 
-		runCmd(exec.Command(vAllowRules.Command, vAllowRules.OpAdd, "-s", ipAddr, "-p", "tcp", "-m", "multiport",
+		runCmd(exec.Command(vAllowRules.Command, vAllowRules.OpAdd, "INPUT", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
 			"--dports", vAllowRules.Rules[idxAllow].DPorts, "-j", vAllowRules.Policy))
 		fmt.Fprintf(w, "{ \"action\": \"allow\", \"address\": \"%s\" }", ipAddr)
 		if localCacheData != nil {
@@ -317,11 +317,15 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	case "revoke", "revokeip":
 		log.Printf("revoking %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
-		runCmd(exec.Command(vAllowRules.Command, vAllowRules.OpDel, "-s", ipAddr, "-p", "tcp", "-m", "multiport",
+		log.Printf("revoke command: %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+			vAllowRules.Command, vAllowRules.OpDel, "INPUT", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
+			"--dports", vAllowRules.Rules[idxAllow].DPorts, "-j", vAllowRules.Policy)
+
+		runCmd(exec.Command(vAllowRules.Command, vAllowRules.OpDel, "INPUT", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
 			"--dports", vAllowRules.Rules[idxAllow].DPorts, "-j", vAllowRules.Policy))
 		fmt.Fprintf(w, "{ \"action\": \"revoke\", \"address\": \"%s\" }", ipAddr)
 	case "show":
-		log.Printf("showed %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
+		log.Printf("showing %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
 		fmt.Fprintf(w, "{ \"action\": \"show\", \"address\": \"%s\" }", ipAddr)
 	}
 }

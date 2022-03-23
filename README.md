@@ -171,6 +171,49 @@ Example:
 curl https://server.com:20443/show/3FA6B8B3-1470-44B3-959B-202A8642D972
 ```
 
+### Systemd Service ###
+
+[Unit]
+Description=fwapid
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+ExecStart=/usr/local/bin/fwapid --allow-file /etc/fwapid/fwapi-allow.json --log-file /var/log/fwapid.log --https-srv 1.2.3.4:20443 --use-letsencrypt --domain server.com --cache-expire 7200 --timer-interval 60
+
+[Install]
+WantedBy=multi-user.target
+
+### Log File ###
+
+The `fwapid` service can write to a log file if specified by `--log-file` cli parameter,
+otherwise will print the log messages to `stdout`.
+
+When writing to a log file, it is recommended to configur `logrotate` for it.
+The file `/etc/logrotate.d/fwapid` can be created with a content like:
+
+```
+/var/log/fwapid.log {
+        daily
+        missingok
+        rotate 14
+        compress
+        delaycompress
+        create 0644 root adm
+        postrotate
+                /usr/lib/rsyslog/rsyslog-rotate
+        endscript
+}
+```
+
+If `syslogd` is used instead of `rsyslogd`, the `postrotate` script should be
+replaced with:
+
+```
+/bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+```
+
 ## License ##
 
 `GPLv3`

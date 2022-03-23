@@ -294,7 +294,11 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 	// iptables -I|-D INPUT -s abc.def.ghi.jkl -p tcp -m multiport --dports 80,443 -j ACCEPT
 	switch tURL[1] {
 	case "allow", "allowip":
-		log.Printf("allowed %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
+		log.Printf("allowing %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
+		log.Printf("allow command: %s %s %s %s %s %s %s %s %s %s %s %s\n",
+			vAllowRules.Command, vAllowRules.OpAdd, "-s", ipAddr, "-p", "tcp", "-m", "multiport",
+			"--dports", vAllowRules.Rules[idxAllow].DPorts, "-j", vAllowRules.Policy)
+
 		runCmd(exec.Command(vAllowRules.Command, vAllowRules.OpAdd, "-s", ipAddr, "-p", "tcp", "-m", "multiport",
 			"--dports", vAllowRules.Rules[idxAllow].DPorts, "-j", vAllowRules.Policy))
 		fmt.Fprintf(w, "{ \"action\": \"allow\", \"address\": \"%s\" }", ipAddr)
@@ -312,7 +316,7 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 			localCacheData.set(ipAddr, cItem)
 		}
 	case "revoke", "revokeip":
-		log.Printf("revoked %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
+		log.Printf("revoking %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
 		runCmd(exec.Command(vAllowRules.Command, vAllowRules.OpDel, "-s", ipAddr, "-p", "tcp", "-m", "multiport",
 			"--dports", vAllowRules.Rules[idxAllow].DPorts, "-j", vAllowRules.Policy))
 		fmt.Fprintf(w, "{ \"action\": \"revoke\", \"address\": \"%s\" }", ipAddr)

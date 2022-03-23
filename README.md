@@ -7,6 +7,19 @@ The scope is to be able to open ports for specific IPs with HTTP REST queries
 on a restrictive firewall, but it can be also configured to block IPs on a
 permissive firewall.
 
+**Table Of Content**
+
+  * [Install](#install)
+    + [Compile From Sources](#compile-from-sources)
+    + [Download Binary Release](#download-binary-release)
+  * [Usage](#usage)
+    + [Configuration File](#configuration-file)
+    + [REST API URLs](#rest-api-urls)
+    + [Systemd Service](#systemd-service)
+    + [Log File](#log-file)
+  * [License](#license)
+  * [Contributions](#contributions)
+
 ## Install ##
 
 ### Compile From Sources ###

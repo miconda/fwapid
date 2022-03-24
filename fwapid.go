@@ -116,7 +116,7 @@ func (cd *CacheData) timerLoop(interval time.Duration) {
 			for cid, cit := range cd.items {
 				if cit.ExpireAt <= time.Now().Unix() {
 					log.Printf("revoking %s for key: %s\n", cit.IPAddr, cit.Key)
-					runCmd(exec.Command(cit.Command, cit.OpDel, "-s", cit.IPAddr, "-p", "tcp", "-m", "multiport",
+					runCmd(exec.Command(cit.Command, cit.OpDel, "INPUT", "-s", cit.IPAddr, "-p", "tcp", "-m", "multiport",
 						"--dports", cit.DPorts, "-j", cit.Policy))
 					delete(cd.items, cid)
 				}

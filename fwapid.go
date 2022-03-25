@@ -408,7 +408,8 @@ func main() {
 		cliops.httpsprvkey = "/etc/letsencrypt/live/" + cliops.domain + "/privkey.pem"
 	}
 
-	// Open our Log
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
+	// open the log file
 	if len(cliops.logfile) > 0 && cliops.logfile != "-" && cliops.logfile != "stdout" {
 		lf, err := os.OpenFile(cliops.logfile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 		if err != nil {

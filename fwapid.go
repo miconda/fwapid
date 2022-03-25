@@ -213,6 +213,9 @@ func runCmd(cmd *exec.Cmd) *bytes.Buffer {
 
 func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 	sURL := strings.TrimSpace(r.URL.Path)
+	if sURL == "/favicon.ico" {
+		return
+	}
 	srcIPAddr, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		log.Printf("action not allowed from %s URL: %s\n", srcIPAddr, sURL)

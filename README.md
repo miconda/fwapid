@@ -63,14 +63,14 @@ Example:
   cache expiration to `7200` seconds, with a cleanup timer interval of `60` seconds.
 
 ```
-fwapid --allow-file /etc/fwapid/fwapi-allow.json --https-srv 1.2.3.4:20443 --use-letsencrypt \
+fwapid --config-file /etc/fwapid/fwapi-allow.json --https-srv 1.2.3.4:20443 --use-letsencrypt \
     --domain server.com --cache-expire 7200 --timer-interval 60
 ```
 
 ### Configuration File ###
 
 The runtime attributes and policy rules are loaded from a JSON file that has to be specified
-via `--allow-file` cli parameter.
+via `--config-file` cli parameter.
 
 Example:
 
@@ -197,7 +197,7 @@ Description=fwapid
 Type=simple
 Restart=always
 RestartSec=5s
-ExecStart=/usr/local/bin/fwapid --allow-file /etc/fwapid/fwapi-allow.json --log-file /var/log/fwapid.log --https-srv 1.2.3.4:20443 --use-letsencrypt --domain server.com --cache-expire 7200 --timer-interval 60
+ExecStart=/usr/local/bin/fwapid --config-file /etc/fwapid/fwapi-allow.json --log-file /var/log/fwapid.log --https-srv 1.2.3.4:20443 --use-letsencrypt --domain server.com --cache-expire 7200 --timer-interval 60
 
 [Install]
 WantedBy=multi-user.target

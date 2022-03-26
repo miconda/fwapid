@@ -28,7 +28,7 @@ type CLIOptions struct {
 	httpsusele    bool
 	httpspubkey   string
 	httpsprvkey   string
-	allowfile     string
+	configfile    string
 	logfile       string
 	cacheexpire   int64
 	timerinterval int
@@ -42,7 +42,7 @@ var cliops = CLIOptions{
 	httpsusele:    false,
 	httpspubkey:   "",
 	httpsprvkey:   "",
-	allowfile:     "",
+	configfile:    "",
 	logfile:       "",
 	cacheexpire:   0,
 	timerinterval: 120,
@@ -237,7 +237,7 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	allowBytes, err := os.ReadFile(cliops.allowfile)
+	allowBytes, err := os.ReadFile(cliops.configfile)
 	if err != nil {
 		log.Printf("unavailable allow file - from %s URL: %s\n", srcIPAddr, sURL)
 		http.Error(w, "Server Error", http.StatusInternalServerError)
@@ -380,7 +380,7 @@ func init() {
 	flag.StringVar(&cliops.httpssrv, "https-srv", cliops.httpssrv, "https server bind address")
 	flag.StringVar(&cliops.httpspubkey, "https-pubkey", cliops.httpspubkey, "https server public key")
 	flag.StringVar(&cliops.httpsprvkey, "https-prvkey", cliops.httpsprvkey, "https server private key")
-	flag.StringVar(&cliops.allowfile, "allow-file", cliops.allowfile, "path to allow file")
+	flag.StringVar(&cliops.configfile, "config-file", cliops.configfile, "path to config file")
 	flag.StringVar(&cliops.logfile, "log-file", cliops.logfile, "path to log file or stdout")
 	flag.BoolVar(&cliops.httpsusele, "use-letsencrypt", cliops.httpsusele,
 		"use local letsencrypt certificates (requires domain)")

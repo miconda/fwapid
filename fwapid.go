@@ -381,6 +381,7 @@ func init() {
 	flag.StringVar(&cliops.httpspubkey, "https-pubkey", cliops.httpspubkey, "https server public key")
 	flag.StringVar(&cliops.httpsprvkey, "https-prvkey", cliops.httpsprvkey, "https server private key")
 	flag.StringVar(&cliops.configfile, "config-file", cliops.configfile, "path to config file")
+	flag.StringVar(&cliops.configfile, "c", cliops.configfile, "path to config file")
 	flag.StringVar(&cliops.logfile, "log-file", cliops.logfile, "path to log file or stdout")
 	flag.BoolVar(&cliops.httpsusele, "use-letsencrypt", cliops.httpsusele,
 		"use local letsencrypt certificates (requires domain)")

@@ -366,12 +366,60 @@ func startHTTPServices() chan error {
 	return errchan
 }
 
+func printCLIOptions() {
+	type CLIOps struct {
+		Ops      []string
+		Usage    string
+		DefValue string
+		VType    string
+	}
+	var items []CLIOps
+	flag.VisitAll(func(f *flag.Flag) {
+		var found bool = false
+		for idx, it := range items {
+			if it.Usage == f.Usage {
+				found = true
+				it.Ops = append(it.Ops, f.Name)
+				items[idx] = it
+			}
+		}
+		if !found {
+			items = append(items, CLIOps{
+				Ops:      []string{f.Name},
+				Usage:    f.Usage,
+				DefValue: f.DefValue,
+				VType:    fmt.Sprintf("%T", f.Value),
+			})
+		}
+	})
+	for _, val := range items {
+		vtype := val.VType[6 : len(val.VType)-5]
+		if vtype[len(vtype)-2:] == "64" {
+			vtype = vtype[:len(vtype)-2]
+		}
+		for _, opt := range val.Ops {
+			if vtype == "bool" {
+				fmt.Printf("  -%s\n", opt)
+			} else {
+
+				fmt.Printf("  -%s %s\n", opt, vtype)
+			}
+		}
+		if vtype != "bool" && len(val.DefValue) > 0 {
+			fmt.Printf("      %s [default: %s]\n", val.Usage, val.DefValue)
+		} else {
+			fmt.Printf("      %s\n", val.Usage)
+		}
+	}
+}
+
 // initialize application components
 func init() {
 	// command line arguments
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s (v%s):\n", filepath.Base(os.Args[0]), fwapidVersion)
-		flag.PrintDefaults()
+		// flag.PrintDefaults()
+		printCLIOptions()
 		os.Exit(1)
 	}
 

@@ -367,13 +367,13 @@ func startHTTPServices() chan error {
 }
 
 func printCLIOptions() {
-	type CLIOps struct {
+	type CLIOptionDef struct {
 		Ops      []string
 		Usage    string
 		DefValue string
 		VType    string
 	}
-	var items []CLIOps
+	var items []CLIOptionDef
 	flag.VisitAll(func(f *flag.Flag) {
 		var found bool = false
 		for idx, it := range items {
@@ -384,7 +384,7 @@ func printCLIOptions() {
 			}
 		}
 		if !found {
-			items = append(items, CLIOps{
+			items = append(items, CLIOptionDef{
 				Ops:      []string{f.Name},
 				Usage:    f.Usage,
 				DefValue: f.DefValue,

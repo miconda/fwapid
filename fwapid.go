@@ -397,13 +397,21 @@ func printCLIOptions() {
 		if vtype[len(vtype)-2:] == "64" {
 			vtype = vtype[:len(vtype)-2]
 		}
-		for _, opt := range val.Ops {
-			if vtype == "bool" {
-				fmt.Printf("  -%s\n", opt)
-			} else {
-
-				fmt.Printf("  -%s %s\n", opt, vtype)
+		sOpt := "  "
+		for idx, opt := range val.Ops {
+			if idx > 0 {
+				sOpt = sOpt + ", "
 			}
+			if len(opt) == 1 {
+				sOpt = sOpt + "-" + opt
+			} else {
+				sOpt = sOpt + "--" + opt
+			}
+		}
+		if vtype == "bool" {
+			fmt.Printf("%s\n", sOpt)
+		} else {
+			fmt.Printf("%s %s\n", sOpt, vtype)
 		}
 		if vtype != "bool" && len(val.DefValue) > 0 {
 			fmt.Printf("      %s [default: %s]\n", val.Usage, val.DefValue)

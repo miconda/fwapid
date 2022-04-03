@@ -432,7 +432,9 @@ func init() {
 	}
 
 	flag.StringVar(&cliops.domain, "domain", cliops.domain, "http service domain")
+	flag.StringVar(&cliops.httpsrv, "B", cliops.httpsrv, "http server bind address")
 	flag.StringVar(&cliops.httpsrv, "http-srv", cliops.httpsrv, "http server bind address")
+	flag.StringVar(&cliops.httpssrv, "b", cliops.httpssrv, "https server bind address")
 	flag.StringVar(&cliops.httpssrv, "https-srv", cliops.httpssrv, "https server bind address")
 	flag.StringVar(&cliops.httpspubkey, "https-pubkey", cliops.httpspubkey, "https server public key")
 	flag.StringVar(&cliops.httpsprvkey, "https-prvkey", cliops.httpsprvkey, "https server private key")

@@ -208,7 +208,7 @@ WantedBy=multi-user.target
 The `fwapid` service can write to a log file if specified by `--log-file` cli parameter,
 otherwise will print the log messages to `stdout`.
 
-When writing to a log file, it is recommended to configur `logrotate` for it.
+When writing to a log file, it is recommended to configure `logrotate` for it.
 The file `/etc/logrotate.d/fwapid` can be created with a content like:
 
 ```

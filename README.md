@@ -122,6 +122,34 @@ The JSON fields are:
 	  ports in `dports`
 	  * `show` - return in HTTP response body the value of the source IP
 
+#### Key Generation ####
+
+The key is sent as part of the URL, therefore use the application only via HTTPS secure connection
+or over trusted networks (e.g., VPN, local host for testing and debugging).
+
+When allocating a key, ensure that is unique and hard to predict (e.g., random). There is no constraint
+from the code point of view, the value of the key can be any string that is valid to be uased as a token
+in the URL path, therefore it must not contain `/`.
+
+Among the options to generate the key:
+
+* using UUID tools to generate Universally Unique Identifiers:
+
+```
+❯ uuid
+4f3b12f2-c75d-11ef-8a39-637a95f243c7
+
+❯ uuidgen
+64954059-CB62-473C-8CD9-7EA8848A559C
+```
+
+* using `openssl` random generator
+
+```
+❯ openssl rand -hex 24
+d77ff2d697f431ebbe24af99ca05303fd0307af7764f47f1
+```
+
 ### REST API URLs ###
 
 Trigger `allow` action:

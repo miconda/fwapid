@@ -270,8 +270,8 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 
 	ipAddr := srcIPAddr
 	switch tURL[1] {
-	case "allow", "revoke", "show":
-	case "allowip", "revokeip":
+	case "add", "allow", "remove", "revoke", "show":
+	case "addip", "allowip", "removeip", "revokeip", "showip":
 		if len(tURL) < 4 || len(strings.TrimSpace(tURL[3])) < 4 {
 			log.Printf("too few tokens from %s URL: %s\n", srcIPAddr, sURL)
 			http.Error(w, "Too few tokens", http.StatusBadRequest)
@@ -296,15 +296,16 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// iptables -I|-D INPUT -s abc.def.ghi.jkl -p tcp -m multiport --dports 80,443 -j ACCEPT
 	switch tURL[1] {
-	case "allow", "allowip":
-		log.Printf("allowing %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
-		log.Printf("allow command: %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+	case "add", "addip", "allow", "allowip":
+		log.Printf("adding %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
+		log.Printf("add command: %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
 			vAllowRules.Command, vAllowRules.OpAdd, "INPUT", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
 			"--dports", vAllowRules.Rules[idxAllow].DPorts, "-j", vAllowRules.Policy)
 
 		runCmd(exec.Command(vAllowRules.Command, vAllowRules.OpAdd, "INPUT", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
 			"--dports", vAllowRules.Rules[idxAllow].DPorts, "-j", vAllowRules.Policy))
-		fmt.Fprintf(w, "{ \"action\": \"allow\", \"address\": \"%s\" }", ipAddr)
+		fmt.Fprintf(w, "{ \"action\": \"%s\", \"policy\": \"%s\", \"address\": \"%s\" }",
+			tURL[1], vAllowRules.Policy, ipAddr)
 		if localCacheData != nil {
 			var cItem CacheItem = CacheItem{
 				Key:      tURL[2],
@@ -318,18 +319,19 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			localCacheData.set(ipAddr, cItem)
 		}
-	case "revoke", "revokeip":
-		log.Printf("revoking %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
-		log.Printf("revoke command: %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+	case "remove", "removeip", "revoke", "revokeip":
+		log.Printf("removing %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
+		log.Printf("remove command: %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
 			vAllowRules.Command, vAllowRules.OpDel, "INPUT", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
 			"--dports", vAllowRules.Rules[idxAllow].DPorts, "-j", vAllowRules.Policy)
 
 		runCmd(exec.Command(vAllowRules.Command, vAllowRules.OpDel, "INPUT", "-s", ipAddr, "-p", "tcp", "-m", "multiport",
 			"--dports", vAllowRules.Rules[idxAllow].DPorts, "-j", vAllowRules.Policy))
-		fmt.Fprintf(w, "{ \"action\": \"revoke\", \"address\": \"%s\" }", ipAddr)
-	case "show":
+		fmt.Fprintf(w, "{ \"action\": \"%s\", \"policy\": \"%s\", \"address\": \"%s\" }",
+			tURL[1], vAllowRules.Policy, ipAddr)
+	case "show", "showip":
 		log.Printf("showing %s from %s via URL: %s\n", ipAddr, srcIPAddr, sURL)
-		fmt.Fprintf(w, "{ \"action\": \"show\", \"address\": \"%s\" }", ipAddr)
+		fmt.Fprintf(w, "{ \"action\": \"%s\", \"address\": \"%s\", \"srcip\": \"%s\"}", tURL[1], ipAddr, srcIPAddr)
 	}
 }
 

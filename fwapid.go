@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-const fwapidVersion = "1.0.0"
+const fwapidVersion = "1.1.0"
 
 // CLIOptions - structure for command line options
 type CLIOptions struct {

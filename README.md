@@ -104,9 +104,9 @@ The JSON fields are:
   * `command` - the iptables binary to execute (can be full path). If is not
   set, then its default value is `iptables`
   * `opadd` - option for adding the rule (default is `-I`)
-  * `opdel` - option for deleting the rule (default is `-D`)
+  * `opdel` - option for deleting (removing) the rule (default is `-D`)
   * `policy` - what is the policy for firewall rules managed via `fwapid` (default
-  is `ACCEPT`)
+  is `ACCEPT`, it can be any valid `iptables` policy, e.g.,: `DROP`, `REJECT`)
   * `rules` - array with the rules for using `fwapid`:
     * `name` - name of the rule
 	* `key` - the API key for executing the rule
@@ -121,6 +121,8 @@ The JSON fields are:
 	  * `revokeip` - delete `iptables` rule to allow traffic from specified ip to the
 	  ports in `dports`
 	  * `show` - return in HTTP response body the value of the source IP
+
+The commands are performed for the `iptables` chain `INPUT`.
 
 #### Key Generation ####
 
@@ -152,7 +154,7 @@ d77ff2d697f431ebbe24af99ca05303fd0307af7764f47f1
 
 ### REST API URLs ###
 
-Trigger `allow` action:
+Trigger `add` action:
 
 ```
 https://server.com:20443/allow/$KEY
@@ -161,40 +163,40 @@ https://server.com:20443/allow/$KEY
 Example:
 
 ```
-curl https://server.com:20443/allow/3FA6B8B3-1470-44B3-959B-202A8642D972
+curl https://server.com:20443/add/3FA6B8B3-1470-44B3-959B-202A8642D972
 ```
 
-Trigger `allowip` action:
+Aliases for `add` action: `addip`, `allow`, `allowip`.
+
+Example:
 
 ```
 https://server.com:20443/allowip/$KEY/$IP
 ```
 
-Example:
-
 ```
 curl https://server.com:20443/allowip/3FA6B8B3-1470-44B3-959B-202A8642D972/2.4.6.8
 ```
 
-Trigger `revoke` action:
+Trigger `remove` action:
 
 ```
-https://server.com:20443/revoke/$KEY
+https://server.com:20443/remove/$KEY
 ```
 
 Example:
 
 ```
-curl https://server.com:20443/revoke/3FA6B8B3-1470-44B3-959B-202A8642D972
+curl https://server.com:20443/remove/3FA6B8B3-1470-44B3-959B-202A8642D972
 ```
 
-Trigger `revokeip` action:
+Aliases for `remove` action: `removeip`, `revoke`, `revokeip`.
+
+Example:
 
 ```
 https://server.com:20443/revokeip/$KEY/$IP
 ```
-
-Example:
 
 ```
 curl https://server.com:20443/revokeip/3FA6B8B3-1470-44B3-959B-202A8642D972/2.4.6.8

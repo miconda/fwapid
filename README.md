@@ -14,6 +14,7 @@ permissive firewall.
     + [Download Binary Release](#download-binary-release)
   * [Usage](#usage)
     + [Configuration File](#configuration-file)
+      - [Key Generation](#key-generation)
     + [REST API URLs](#rest-api-urls)
     + [Systemd Service](#systemd-service)
     + [Log File](#log-file)

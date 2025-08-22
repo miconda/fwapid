@@ -79,8 +79,7 @@ type CacheItem struct {
 }
 
 type CacheData struct {
-	stop chan struct{}
-
+	stop  chan struct{}
 	wg    sync.WaitGroup
 	mu    sync.RWMutex
 	items map[string]CacheItem
@@ -336,7 +335,6 @@ func fwapidHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func startHTTPServices() chan error {
-
 	errchan := make(chan error)
 
 	// starting HTTP server

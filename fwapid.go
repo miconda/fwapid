@@ -62,6 +62,7 @@ type RuleData struct {
 	Name    string   `json:"name"`
 	Key     string   `json:"key"`
 	DPorts  string   `json:"dports"`
+	Comment string   `json:"comment,omitempty"`
 	Actions []string `json:"actions"`
 }
 

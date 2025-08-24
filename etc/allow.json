@@ -1,9 +1,21 @@
 {
 	"mode": 1,
+	"command": "iptables",
+	"opadd": "-I",
+	"opdel": "-D",
+	"policy": "ACCEPT",
 	"rules": [
+		{
+			"name": "admin",
+			"key": "3FA6B8B3-1470-44B3-959B-202A8642D978",
+			"dports": "80,443",
+			"comment": "administrative access",
+			"actions": ["allow", "allowip", "revoke", "revokeip", "show"]
+		},
 		{
 			"name": "test",
 			"key": "3FA6B8B3-1470-44B3-959B-202A8642D972",
+			"dports": "80,443",
 			"actions": ["allow", "show"]
 		}
 	]
